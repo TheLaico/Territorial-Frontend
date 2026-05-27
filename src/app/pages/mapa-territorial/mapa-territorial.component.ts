@@ -6,14 +6,18 @@ import { CommonModule } from '@angular/common';
 import * as L from 'leaflet';
 import 'leaflet.markercluster';
 import { AnnotationsService } from './services/annotations.service';
+import { AnotacionFormComponent } from './components/anotacion-form/anotacion-form.component';
 import { FiltrosPanelComponent } from './components/filtros-panel/filtros-panel.component';
 import { DemarcacionPanelComponent } from './components/demarcacion-panel/demarcacion-panel.component';
+import { TrackingPanelComponent } from './components/tracking-panel/tracking-panel.component';
 import { AnotacionDetalleComponent } from './components/anotacion-detalle/anotacion-detalle.component';
 import { Annotation } from './models/annotation.model';
 import { Barrio } from './models/barrio.model';
+import { Official } from './models/official.model';
 import { BarriosService } from './services/barrios.service';
 import { toObservable, takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Observable } from 'rxjs';
+import { MatSnackBar } from '@angular/material/snack-bar';
 import { MaterialModule } from '../../material.module';
 
 @Component({
@@ -22,8 +26,10 @@ import { MaterialModule } from '../../material.module';
   imports: [
     CommonModule,
     MaterialModule,
+    AnotacionFormComponent,
     FiltrosPanelComponent,
     DemarcacionPanelComponent,
+    TrackingPanelComponent,
     AnotacionDetalleComponent,
   ],
   templateUrl: './mapa-territorial.component.html',
@@ -33,20 +39,24 @@ export class MapaTerritorialComponent implements OnInit, AfterViewInit {
   private annSvc = inject(AnnotationsService);
   private barriosSvc = inject(BarriosService);
   private destroyRef = inject(DestroyRef);
+  private snack = inject(MatSnackBar);
 
   filtered = this.annSvc.filtered;
   loading = this.annSvc.loading;
   selected = signal<Annotation | null>(null);
-  mode = signal<'mapa' | 'demarcacion'>('mapa');
-  demarcacionPanel = viewChild<DemarcacionPanelComponent>('demarcacionPanel');
+  mode = signal<'mapa' | 'demarcacion' | 'tracking'>('mapa');
+  demarcacionPanel = viewChild<DemarcacionPanelComponent>('demarcacionPanelRef');
   barrioActivo = signal<Barrio | null>(null);
   drawCoords = signal<[number, number][]>([]);
+  formCoords = signal<[number, number] | null>(null);
+  showForm = signal(false);
 
   private map!: L.Map;
   private clusterGroup!: L.MarkerClusterGroup;
   private filtered$: Observable<Annotation[]>;
   private drawLayer?: L.Polygon;
   private drawMarkers: L.Marker[] = [];
+  private officialMarkers = new Map<number, L.Marker>();
 
   constructor() {
     // toObservable debe crearse en un contexto de inyeccion.
@@ -88,6 +98,17 @@ export class MapaTerritorialComponent implements OnInit, AfterViewInit {
     });
     this.map.addLayer(this.clusterGroup);
 
+    this.map.on('click', (e: L.LeafletMouseEvent) => {
+      if (this.mode() === 'mapa') {
+        this.formCoords.set([e.latlng.lat, e.latlng.lng]);
+        this.showForm.set(true);
+      } else if (this.mode() === 'demarcacion' && this.barrioActivo()) {
+        const coords = [...this.drawCoords(), [e.latlng.lat, e.latlng.lng] as [number, number]];
+        this.drawCoords.set(coords);
+        this.redrawPolygon();
+      }
+    });
+
     this.map.on('moveend', () => this.annSvc.loadMore());
 
     this.filtered$.subscribe(annotations => this.renderMarkers(annotations));
@@ -99,7 +120,6 @@ export class MapaTerritorialComponent implements OnInit, AfterViewInit {
     this.clearDrawLayers();
 
     if (!b) {
-      this.map.off('click');
       return;
     }
 
@@ -126,7 +146,38 @@ export class MapaTerritorialComponent implements OnInit, AfterViewInit {
     this.demarcacionPanel()?.save(this.drawCoords());
   }
 
+  onOfficialsUpdate(officials: Official[]) {
+    const active = new Set(officials.map(o => o.id_official));
+
+    this.officialMarkers.forEach((marker, id) => {
+      if (!active.has(id)) {
+        this.map.removeLayer(marker);
+        this.officialMarkers.delete(id);
+      }
+    });
+
+    officials.forEach(o => {
+      const latlng: L.LatLngExpression = [o.last_latitude, o.last_longitude];
+      const icon = L.divIcon({
+        className: '',
+        html: `<div style="background:${o.gps_active ? '#2ecc71' : '#aaa'};width:14px;height:14px;border-radius:50%;border:2px solid #fff;box-shadow:0 1px 4px #0004"></div>`,
+        iconSize: [14, 14],
+        iconAnchor: [7, 7]
+      });
+
+      if (this.officialMarkers.has(o.id_official)) {
+        this.officialMarkers.get(o.id_official)!.setLatLng(latlng);
+      } else {
+        const m = L.marker(latlng, { icon })
+          .bindTooltip(o.name, { permanent: false })
+          .addTo(this.map);
+        this.officialMarkers.set(o.id_official, m);
+      }
+    });
+  }
+
   recargarPoligono() {
+    this.snack.open('Polígono guardado correctamente', '✕', { duration: 3000 });
     const b = this.barrioActivo();
     if (!b) return;
 
@@ -144,8 +195,13 @@ export class MapaTerritorialComponent implements OnInit, AfterViewInit {
     });
   }
 
-  setMode(mode: 'mapa' | 'demarcacion') {
+  setMode(mode: 'mapa' | 'demarcacion' | 'tracking') {
     this.mode.set(mode);
+
+    if (mode !== 'mapa') {
+      this.showForm.set(false);
+      this.formCoords.set(null);
+    }
 
     if (mode === 'demarcacion') {
       if (this.barrioActivo()) {
@@ -157,22 +213,18 @@ export class MapaTerritorialComponent implements OnInit, AfterViewInit {
     this.barrioActivo.set(null);
     this.drawCoords.set([]);
     this.clearDrawLayers();
-    this.map.off('click');
+
+    if (mode !== 'tracking') {
+      this.officialMarkers.forEach(m => this.map.removeLayer(m));
+      this.officialMarkers.clear();
+    }
   }
 
   private enableDrawMode() {
-    this.map.off('click');
     if (!this.barrioActivo()) return;
-
-    // CU-09 paso 3: clic agrega punto
-    this.map.on('click', (e: L.LeafletMouseEvent) => {
-      const coords = [...this.drawCoords(), [e.latlng.lat, e.latlng.lng] as [number, number]];
-      this.drawCoords.set(coords);
-      this.redrawPolygon();
-    });
   }
 
-  private clearDrawLayers() {
+  public clearDrawLayers() {
     if (this.drawLayer) {
       this.map.removeLayer(this.drawLayer);
       this.drawLayer = undefined;
