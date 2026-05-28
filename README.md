@@ -1,5 +1,3 @@
-Este solo es el rsc de una sitema mas grande, esta es la distribucion de archivos
-
 ESTRUCTURA DE CARPETAS Y ARCHIVOS:
 
 |-- src/
@@ -39,10 +37,25 @@ ESTRUCTURA DE CARPETAS Y ARCHIVOS:
 |   |   |       |   |-- branding.component.ts
 |   |   |       |   |-- sidebar.component.html
 |   |   |       |   |-- sidebar.component.ts
+|   |   |       |   |-- sidebar-data.backup.ts
 |   |   |       |   +-- sidebar-data.ts
 |   |   |       |-- full.component.html
 |   |   |       +-- full.component.ts
 |   |   |-- pages/
+|   |   |   |-- anotaciones/
+|   |   |   |   |-- crear/
+|   |   |   |   |   |-- crear.component.html
+|   |   |   |   |   |-- crear.component.scss
+|   |   |   |   |   +-- crear.component.ts
+|   |   |   |   |-- evidencias/
+|   |   |   |   |   |-- evidencias.component.html
+|   |   |   |   |   |-- evidencias.component.scss
+|   |   |   |   |   +-- evidencias.component.ts
+|   |   |   |   |-- visualizar/
+|   |   |   |   |   |-- visualizar.component.html
+|   |   |   |   |   |-- visualizar.component.scss
+|   |   |   |   |   +-- visualizar.component.ts
+|   |   |   |   +-- anotaciones.routes.ts
 |   |   |   |-- authentication/
 |   |   |   |   |-- side-login/
 |   |   |   |   |   |-- side-login.component.html
@@ -62,18 +75,59 @@ ESTRUCTURA DE CARPETAS Y ARCHIVOS:
 |   |   |   |-- mapa-territorial/
 |   |   |   |   |-- components/
 |   |   |   |   |   |-- anotacion-detalle/
-|   |   |   |   |   +-- filtros-panel/
+|   |   |   |   |   |-- anotacion-form/
+|   |   |   |   |   |-- demarcacion-panel/
+|   |   |   |   |   |-- demarcacion-sidebar/
+|   |   |   |   |   |-- filtros-panel/
+|   |   |   |   |   |-- mapa-base/
+|   |   |   |   |   +-- tracking-panel/
+|   |   |   |   |-- mapa-anotar/
+|   |   |   |   |   |-- components/
+|   |   |   |   |   |-- mapa-anotar-page.component.html
+|   |   |   |   |   |-- mapa-anotar-page.component.scss
+|   |   |   |   |   +-- mapa-anotar-page.component.ts
+|   |   |   |   |-- mapa-demarcacion/
+|   |   |   |   |   +-- pages/
+|   |   |   |   |-- mapa-home/
+|   |   |   |   |   |-- mapa-home.component.html
+|   |   |   |   |   |-- mapa-home.component.scss
+|   |   |   |   |   |-- mapa-home.component.ts
+|   |   |   |   |   |-- mapa-home.service.ts
+|   |   |   |   |   +-- mapa-home-option.model.ts
+|   |   |   |   |-- mapa-seguimiento/
+|   |   |   |   |   |-- components/
+|   |   |   |   |   |-- mapa-seguimiento-page.component.html
+|   |   |   |   |   |-- mapa-seguimiento-page.component.scss
+|   |   |   |   |   +-- mapa-seguimiento-page.component.ts
+|   |   |   |   |-- mapa-ver/
+|   |   |   |   |   |-- mapa-ver.component.html
+|   |   |   |   |   |-- mapa-ver.component.scss
+|   |   |   |   |   +-- mapa-ver.component.ts
 |   |   |   |   |-- models/
 |   |   |   |   |   |-- annotation.model.ts
 |   |   |   |   |   |-- annotation-category.model.ts
-|   |   |   |   |   +-- category.model.ts
+|   |   |   |   |   |-- barrio.model.ts
+|   |   |   |   |   |-- barrio.ts
+|   |   |   |   |   |-- category.model.ts
+|   |   |   |   |   |-- entity.model.ts
+|   |   |   |   |   |-- evidence.model.ts
+|   |   |   |   |   |-- official.model.ts
+|   |   |   |   |   +-- vote.model.ts
 |   |   |   |   |-- services/
 |   |   |   |   |   |-- annotation-categories.service.spec.ts
 |   |   |   |   |   |-- annotation-categories.service.ts
 |   |   |   |   |   |-- annotations.service.spec.ts
 |   |   |   |   |   |-- annotations.service.ts
+|   |   |   |   |   |-- anotacion-form.service.ts
+|   |   |   |   |   |-- barrios.service.ts
 |   |   |   |   |   |-- categories.service.spec.ts
-|   |   |   |   |   +-- categories.service.ts
+|   |   |   |   |   |-- categories.service.ts
+|   |   |   |   |   |-- entities.service.ts
+|   |   |   |   |   |-- evidences.service.ts
+|   |   |   |   |   |-- interested-parties.service.ts
+|   |   |   |   |   |-- official-markers.service.ts
+|   |   |   |   |   |-- officials.service.ts
+|   |   |   |   |   +-- votes.service.ts
 |   |   |   |   |-- mapa-territorial.component.html
 |   |   |   |   |-- mapa-territorial.component.scss
 |   |   |   |   |-- mapa-territorial.component.spec.ts
@@ -270,6 +324,7 @@ ESTRUCTURA DE CARPETAS Y ARCHIVOS:
 |   |-- globals.css
 |   |-- index.html
 |   |-- main.ts
+|   |-- proxy.conf.json
 |   +-- styles.scss
 |-- .editorconfig
 |-- .gitignore
@@ -287,3 +342,12 @@ ESTRUCTURA DE CARPETAS Y ARCHIVOS:
 |-- tsconfig.app.json
 |-- tsconfig.json
 +-- tsconfig.spec.json
+
+===============================================
+
+ESTADISTICAS:
+  * Archivos TypeScript (.ts): 98
+  * Plantillas HTML (.html): 46
+  * Estilos SCSS (.scss): 65
+
+COMPLETADO
