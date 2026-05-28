@@ -1,0 +1,38 @@
+<div class="anotar-layout">
+  <header class="anotar-header">
+    <div>
+      <h1>Crear anotación</h1>
+      <p>Haz clic en el mapa para agregar una anotación en el territorio.</p>
+    </div>
+
+    <button mat-stroked-button type="button">
+      <mat-icon>help_outline</mat-icon>
+      Guía de uso
+    </button>
+  </header>
+
+  <div class="anotar-body">
+    <div class="map-panel">
+      <app-mapa-base
+        (mapReady)="onMapReady($event)"
+        (mapClick)="onMapClick($event)" />
+
+      <app-coords-tooltip [coords]="formCoords()" />
+    </div>
+
+    @if (showForm()) {
+      <aside class="form-panel">
+        <app-anotacion-form
+          [coords]="formCoords()"
+          (saved)="onFormSaved($event)"
+          (closed)="onFormClosed()" />
+      </aside>
+    }
+
+    @if (selectedAnnotation()) {
+      <aside class="form-panel">
+        <app-anotacion-detalle [annotation]="selectedAnnotation()" />
+      </aside>
+    }
+  </div>
+</div>
